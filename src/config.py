@@ -1,5 +1,6 @@
+import re
 from os import getenv
-from os.path import exists, dirname, join
+from os.path import exists, dirname, join, abspath
 import logging
 import logging.config
 
@@ -8,12 +9,13 @@ import yaml
 
 logger = logging.getLogger('ssh-logger')
 
-relative = lambda *args: join(dirname(__file__), *args)
+relative = lambda *args: abspath(join(dirname(__file__), *args))
 
 HOST = getenv('SSH_HOST', '')
 PORT = getenv('SSH_PORT', 8022)
 PRIVATE_KEY = getenv('SSH_KEY', 'id_rsa')
 SERVER_VERSION = getenv('SERVER_VERSION', 'OpenSSH_7.4')
+LOGS_PATH = getenv('LOGS_PATH', relative('.'))
 
 OPTIONS = [
     'sockname',
@@ -38,5 +40,20 @@ def setup_logging():
         return
 
     with open(config_filename, 'r') as input:
-        data = yaml.safe_load(input)
+        data = yaml.load(input)
         logging.config.dictConfig(data)
+
+
+class YamlEnvResolver:
+    pattern = re.compile(r'^\<%= ENV\[\'(.*)\'\] %\>(.*)$')
+
+    def install(self):
+        yaml.add_implicit_resolver('!pathex', self.pattern)
+        yaml.add_constructor('!pathex', self.pathex_constructor)
+
+    def pathex_constructor(self, loader, node):
+        value = loader.construct_scalar(node)
+        variable, remaining = self.pattern.match(value).groups()
+        return getenv(variable) + remaining
+
+YamlEnvResolver().install()

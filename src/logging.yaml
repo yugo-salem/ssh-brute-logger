@@ -10,23 +10,34 @@ formatters:
     class: formatters.JsonFormatter
 
 handlers:
-  console:
+  stdout:
     class: logging.StreamHandler
-    level: DEBUG
-    formatter: json
+    level: INFO
+    formatter: simple
     stream: ext://sys.stdout
+
+  logs:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: <%= ENV['LOGS_PATH'] %>/log.json
+    maxBytes: 16384
 
 loggers:
   ssh-logger:
     level: INFO
-    handlers: [console]
+    handlers:
+      - stdout
+      - logs
     propagate: no
 
   asyncio:
     level: INFO
-    handlers: [console]
+    handlers:
+      - stdout
     propagate: no
 
 root:
   level: INFO
-  handlers: [console]
+  handlers:
+    - stdout

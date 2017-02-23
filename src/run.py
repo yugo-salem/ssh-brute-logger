@@ -22,11 +22,6 @@ def get_private_key():
     else:
         private_key = asyncssh.read_private_key(key_filename)
 
-    logger.info([
-        'Server key',
-        key_to_str(private_key),
-    ])
-
     return private_key
 
 
@@ -98,7 +93,12 @@ async def start_server():
     await asyncssh.create_server(SSHServer, config.HOST, config.PORT,
                                  server_version=config.SERVER_VERSION,
                                  server_host_keys=[private_key])
-    logger.info('Started')
+    logger.info(['Started', {
+        'host': config.HOST,
+        'port': config.PORT,
+        'version': config.SERVER_VERSION,
+        'server key': key_to_str(private_key),
+    }])
 
 
 def main():
