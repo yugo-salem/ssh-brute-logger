@@ -1,0 +1,32 @@
+version: 1
+
+disable_existing_loggers: True
+
+formatters:
+  simple:
+    format: '%(asctime)s|%(name)s|%(levelname)s|%(message)s'
+
+  json:
+    class: formatters.JsonFormatter
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: json
+    stream: ext://sys.stdout
+
+loggers:
+  ssh-logger:
+    level: INFO
+    handlers: [console]
+    propagate: no
+
+  asyncio:
+    level: INFO
+    handlers: [console]
+    propagate: no
+
+root:
+  level: INFO
+  handlers: [console]
